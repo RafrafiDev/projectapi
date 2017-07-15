@@ -4,7 +4,8 @@ security:
 
     # http://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
     providers:
-
+        fos_userbundle:
+            id: fos_user.user_provider.username
         in_memory:
             memory: ~
 
@@ -16,8 +17,18 @@ security:
         oauth_token:                                   # Everyone can access the access token URL.
             pattern: ^/oauth/v2/token
             security: false
+
+
+        oauth_authorize:
+            pattern:    ^/oauth/v2/auth
+            form_login:
+                provider: fos_userbundle
+                check_path: /oauth/v2/auth/login_check
+                login_path: /oauth/v2/auth/login
+            anonymous: true
+
         api:
-            pattern: ^/                                # All URLs are protected
+            pattern: ^/api                             # All URLs are protected
             fos_oauth: true                            # OAuth2 protected resource
             stateless: true                            # Do no set session cookies
             anonymous: false                           # Anonymous access is not allowed
@@ -37,3 +48,15 @@ security:
             #form_login: ~
     encoders:
         FOS\UserBundle\Model\UserInterface: sha512
+
+
+    access_control:
+        - { path: ^/api, role: IS_AUTHENTICATED_FULLY }
+        - { path: ^/login$, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/resetting, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/admin/, role: ROLE_ADMIN }
+
+    role_hierarchy:
+        ROLE_ADMIN:       ROLE_USER
+        ROLE_SUPER_ADMIN: ROLE_ADMIN
